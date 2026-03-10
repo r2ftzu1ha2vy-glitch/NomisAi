@@ -317,19 +317,87 @@ pre.code-pre{margin:0;padding:15px 17px;overflow-x:auto;font-size:12.5px;line-he
 @keyframes pulseDot{0%,100%{opacity:1}50%{opacity:.35}}
 
 @media(max-width:768px){
-  #nav{padding:0 20px}
+  /* ── Landing mobile ── */
+  #nav{padding:0 16px}
   .nav-links{display:none}
-  section{padding:76px 22px}
-  .split,.split.rev{flex-direction:column;gap:44px}
-  .stats-row{flex-direction:column;border-radius:0}
-  .stat{border-right:none;border-bottom:1px solid var(--gold-border)}
+  .nav-cta{padding:8px 14px;font-size:10px}
+  section{padding:70px 18px}
+  .hero-title{font-size:clamp(42px,14vw,80px);letter-spacing:-2px}
+  .hero-desc{font-size:17px}
+  .hero-logo{width:84px;height:84px}
+  .hero-logo-wrap .hero-ring{inset:-8px}
+  .hero-btns{flex-direction:column;align-items:center}
+  .btn-p,.btn-g{width:100%;max-width:280px;text-align:center;padding:14px 20px}
+  .split,.split.rev{flex-direction:column;gap:36px}
+  .split-t,.split-v{width:100%}
+  .ai-card{padding:24px 20px}
+  .code-box .code-body{font-size:11px;padding:14px}
+  .stats-row{flex-direction:column;border-radius:12px}
+  .stat{border-right:none;border-bottom:1px solid var(--gold-border);padding:32px 20px}
   .stat:last-child{border-bottom:none}
-  .themes-row{flex-direction:column}
-  footer{flex-direction:column;gap:20px;text-align:center}
-  .foot-links{flex-wrap:wrap;justify-content:center}
-  #sidebar{position:absolute;top:0;bottom:0;left:0;z-index:10;box-shadow:4px 0 20px rgba(0,0,0,.6)}
-  .app-tab-bar,.theme-bar{display:none}
+  .stat-n{font-size:42px}
+  .themes-row{flex-direction:column;gap:12px}
+  .ns-card{padding:40px 24px}
+  .ns-title{font-size:28px}
+  footer{flex-direction:column;gap:16px;text-align:center;padding:32px 18px}
+  .foot-links{flex-wrap:wrap;justify-content:center;gap:16px}
+
+  /* ── App mobile ── */
+  #app-nav{padding:0 12px;height:52px}
+  .app-nav-name{font-size:15px}
+  .app-tab-bar{display:flex}
+  .app-tab{padding:5px 10px;font-size:10px;letter-spacing:.5px}
+  .theme-bar{display:none}
+  #close-app{padding:5px 9px;font-size:16px}
+
+  /* Sidebar: slide over on mobile */
+  #sidebar{
+    position:absolute;top:0;bottom:0;left:0;z-index:50;
+    box-shadow:6px 0 24px rgba(0,0,0,.7);
+    width:240px!important;min-width:240px!important;
+  }
+  #sidebar.closed{width:0!important;min-width:0!important}
+
+  /* Sidebar overlay backdrop */
+  #sb-backdrop{display:none;position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:40}
+  #sidebar:not(.closed) ~ #sb-backdrop{display:block}
+
+  /* Chat area */
+  #msg-area{padding:16px 14px 8px}
+  .bubble{max-width:85%;font-size:14px;padding:10px 14px}
+  .welcome{padding:20px 14px 30px}
+  .w-av,.w-av-fb{width:64px;height:64px}
+  .w-title{font-size:20px}
+  .w-sub{font-size:13.5px}
+  .suggestions{gap:6px}
+  .sug{font-size:12px;padding:6px 11px}
+
+  /* Input bar */
+  #input-bar{padding:8px 14px 14px}
+  #msg-input{font-size:14px}
+  .send-btn{width:34px;height:34px}
+
+  /* Profile/auth modals */
+  .auth-card{padding:30px 22px}
+  .prof-card{padding:28px 20px;max-height:95vh}
+
+  /* Thinking bubble */
+  .thinking-bubble{min-width:140px;padding:10px 14px}
+  .think-label{font-size:12.5px}
 }
+
+@media(max-width:480px){
+  .hero-title{font-size:clamp(36px,16vw,60px)}
+  .s-title{font-size:clamp(26px,8vw,40px)}
+  .app-tab{padding:5px 8px;font-size:9px}
+  .bubble{max-width:90%}
+  .msg-av,.msg-av-fb{width:28px;height:28px}
+  .msg-uav{width:28px;height:28px;font-size:11px}
+}
+
+
+
+
 </style>
 </head>
 <body>
@@ -568,6 +636,7 @@ pre.code-pre{margin:0;padding:15px 17px;overflow-x:auto;font-size:12.5px;line-he
 
   <!-- APP BODY -->
   <div id="app-body">
+    <div id="sb-backdrop" onclick="closeSidebarMobile()"></div>
 
     <!-- SIDEBAR -->
     <div id="sidebar">
@@ -757,19 +826,45 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
 // ─── App open/close ───────────────────────────────────────────────────────────
 function openApp(){
   if(!user){ openAuth(); return; }
-  document.getElementById('app-overlay').classList.add('open');
+  const overlay = document.getElementById('app-overlay');
+  const landing = document.getElementById('landing');
+  const nav = document.getElementById('nav');
+  overlay.classList.add('open');
+  overlay.style.position = 'fixed';
+  overlay.style.height = '';
+  landing.style.display = 'none';
+  nav.style.display = 'none';
   document.body.classList.add('in-app');
-  document.body.style.overflow='hidden';
+  document.body.style.overflow = 'hidden';
   applyTheme(theme);
+  // On mobile, start with sidebar closed
+  if(window.innerWidth <= 768){
+    sidebarOpen = false;
+    document.getElementById('sidebar').classList.add('closed');
+  } else {
+    sidebarOpen = true;
+    document.getElementById('sidebar').classList.remove('closed');
+  }
   renderSidebar();
   renderMessages();
 }
 function closeApp(){
-  document.getElementById('app-overlay').classList.remove('open');
+  const overlay = document.getElementById('app-overlay');
+  const landing = document.getElementById('landing');
+  const nav = document.getElementById('nav');
+  overlay.classList.remove('open');
+  overlay.style.position = '';
+  landing.style.display = 'block';
+  nav.style.display = 'flex';
   document.body.classList.remove('in-app');
-  document.body.style.overflow='';
+  document.body.style.overflow = '';
 }
 function showLanding(){ closeApp(); window.scrollTo({top:0,behavior:'smooth'}); }
+
+// ─── Email validation ──────────────────────────────────────────────────────────
+function isValidEmail(e){
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
+}
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 let authMode = 'in';
@@ -784,31 +879,215 @@ function switchAuthTab(m){
   const btn=document.querySelector('.auth-submit');
   btn.textContent=m==='in'?'Enter ›':'Create Account ›';
 }
+
+function launchApp(){
+  closeAuth();
+  document.getElementById('landing').style.display='none';
+  document.getElementById('nav').style.display='none';
+  const overlay=document.getElementById('app-overlay');
+  overlay.classList.add('open');
+  overlay.style.position='fixed';
+  document.body.classList.add('in-app');
+  document.body.style.overflow='hidden';
+  applyTheme(theme);
+  if(window.innerWidth<=768){
+    sidebarOpen=false;
+    document.getElementById('sidebar').classList.add('closed');
+  }
+  renderSidebar();
+  renderMessages();
+  updateUserUI();
+}
+
 function submitAuth(){
-  const email=document.getElementById('a-email').value.trim();
+  const email=document.getElementById('a-email').value.trim().toLowerCase();
   const pass=document.getElementById('a-pass').value.trim();
   const name=document.getElementById('a-name').value.trim();
   const errEl=document.getElementById('a-err');
   errEl.textContent='';
-  if(!email||!pass){errEl.textContent='Please fill all fields.';return;}
+
+  // ── Validate fields ──
+  if(!email){errEl.textContent='Email address is required.';return;}
+  if(!isValidEmail(email)){errEl.textContent='Please enter a valid email address.';return;}
+  if(!pass){errEl.textContent='Password is required.';return;}
+  if(pass.length<6){errEl.textContent='Password must be at least 6 characters.';return;}
+
   const store=ls('nomis_users')||{};
+
   if(authMode==='up'){
     if(!name){errEl.textContent='Name is required.';return;}
-    if(store[email]){errEl.textContent='Email already registered.';return;}
-    store[email]={name,email,pass:hashP(pass),bio:'',avatar:'',chats:{nomis:[{id:'n1',title:'New Chat',messages:[]}],nodex:[{id:'x1',title:'New Chat',messages:[]}]}};
-    lss('nomis_users',store);
+    if(store[email]){errEl.textContent='An account with that email already exists.';return;}
+    // Store pending user and send verification code
+    pendingSignup={name,email,pass:hashP(pass)};
+    sendVerificationCode(email, name);
   } else {
-    if(!store[email]||store[email].pass!==hashP(pass)){errEl.textContent='Invalid email or password.';return;}
+    // Sign in
+    const u=store[email];
+    if(!u){errEl.textContent='No account found with that email.';return;}
+    if(u.pass!==hashP(pass)){errEl.textContent='Incorrect password.';return;}
+    // Sign in: no email verify needed
+    lss('nomis_session',email);
+    user=u;
+    chats=user.chats||{nomis:[{id:'n1',title:'New Chat',messages:[]}],nodex:[{id:'x1',title:'New Chat',messages:[]}]};
+    activeChatId.nomis=chats.nomis[0]?.id||'n1';
+    activeChatId.nodex=chats.nodex[0]?.id||'x1';
+    launchApp();
   }
-  lss('nomis_session',email);
-  user=store[email];
-  chats=user.chats||{nomis:[{id:'n1',title:'New Chat',messages:[]}],nodex:[{id:'x1',title:'New Chat',messages:[]}]};
-  activeChatId.nomis=chats.nomis[0]?.id||'n1';
-  activeChatId.nodex=chats.nodex[0]?.id||'x1';
-  closeAuth();
-  openApp();
-  updateUserUI();
 }
+
+// ─── Email Verification ────────────────────────────────────────────────────────
+let pendingSignup = null;
+let verifyCode = '';
+let verifyEmail = '';
+let resendCooldown = 0;
+let resendTimer = null;
+
+function generateCode(){
+  return Math.floor(100000+Math.random()*900000).toString();
+}
+
+async function sendVerificationCode(email, name){
+  const btn = document.querySelector('.auth-submit');
+  const errEl = document.getElementById('a-err');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="verify-spinner"></span>Sending...';
+
+  verifyCode = generateCode();
+  verifyEmail = email;
+
+  try {
+    // Use EmailJS to send the code
+    // ── EmailJS setup: create free account at emailjs.com ──────────────────
+    // 1. Create account at https://emailjs.com
+    // 2. Add an Email Service (Gmail/Outlook etc), note the Service ID
+    // 3. Create template with variables: {{to_email}}, {{to_name}}, {{code}}, {{app_name}}
+    //    Note the Template ID
+    // 4. Copy your Public Key from Account > API Keys
+    // 5. Replace the three IDs below:
+    await emailjs.init('YOUR_PUBLIC_KEY'); // ← replace
+    await emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', { // ← replace both
+      to_email: email,
+      to_name: name || email.split('@')[0],
+      code: verifyCode,
+      app_name: 'Nomis AI'
+    });
+    // Show verify screen
+    openVerifyScreen(email);
+  } catch(err) {
+    console.error('EmailJS error:', err);
+    // Fallback: if EmailJS not configured, still let them in with code shown in console
+    // For demo/testing: show code in the verify screen description
+    openVerifyScreen(email, true, verifyCode);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Create Account ›';
+  }
+}
+
+function openVerifyScreen(email, demo=false, demoCode=''){
+  document.getElementById('verify-email-show').textContent = email;
+  document.getElementById('verify-code-input').value = '';
+  document.getElementById('verify-err').textContent = '';
+  const okEl2 = document.getElementById('verify-ok');
+  if(demo){
+    okEl2.className='verify-ok warn';
+    okEl2.textContent='📋 Email service not set up — your verification code is: '+demoCode;
+  } else {
+    okEl2.className='verify-ok';
+    okEl2.textContent='✓ Code sent! Check your inbox (and spam folder).';
+  }
+  document.getElementById('verify-screen').classList.add('open');
+  document.getElementById('verify-code-input').focus();
+  startResendCooldown();
+}
+
+function cancelVerify(){
+  document.getElementById('verify-screen').classList.remove('open');
+  pendingSignup = null; verifyCode = ''; verifyEmail = '';
+  clearInterval(resendTimer);
+}
+
+function confirmCode(){
+  const entered = document.getElementById('verify-code-input').value.trim();
+  const errEl = document.getElementById('verify-err');
+  const okEl = document.getElementById('verify-ok');
+  errEl.textContent = '';
+
+  if(!entered || entered.length < 6){
+    errEl.textContent = 'Enter the 6-digit code.'; return;
+  }
+  if(entered !== verifyCode){
+    errEl.textContent = 'Incorrect code — please try again.'; return;
+  }
+
+  // Code correct — create account
+  const store = ls('nomis_users')||{};
+  store[pendingSignup.email] = {
+    name: pendingSignup.name,
+    email: pendingSignup.email,
+    pass: pendingSignup.pass,
+    bio: '', avatar: '',
+    chats: {
+      nomis: [{id:'n1',title:'New Chat',messages:[]}],
+      nodex: [{id:'x1',title:'New Chat',messages:[]}]
+    }
+  };
+  lss('nomis_users', store);
+  lss('nomis_session', pendingSignup.email);
+  user = store[pendingSignup.email];
+  chats = user.chats;
+  activeChatId.nomis = 'n1';
+  activeChatId.nodex = 'x1';
+
+  document.getElementById('verify-screen').classList.remove('open');
+  pendingSignup = null; verifyCode = ''; verifyEmail = '';
+  clearInterval(resendTimer);
+  launchApp();
+}
+
+async function resendCode(){
+  if(resendCooldown > 0) return;
+  if(!pendingSignup) return;
+  verifyCode = generateCode();
+  document.getElementById('verify-err').textContent = '';
+  const btn = document.getElementById('verify-resend-btn');
+  btn.disabled = true;
+  try {
+    await emailjs.send('YOUR_SERVICE_ID','YOUR_TEMPLATE_ID',{
+      to_email: pendingSignup.email,
+      to_name: pendingSignup.name,
+      code: verifyCode,
+      app_name: 'Nomis AI'
+    });
+    document.getElementById('verify-ok').textContent = 'New code sent!';
+  } catch(e) {
+    document.getElementById('verify-ok').textContent = 'Resend failed. New code: '+verifyCode;
+  }
+  btn.disabled = false;
+  startResendCooldown();
+}
+
+function startResendCooldown(){
+  resendCooldown = 60;
+  clearInterval(resendTimer);
+  const btn = document.getElementById('verify-resend-btn');
+  resendTimer = setInterval(()=>{
+    resendCooldown--;
+    if(btn) btn.textContent = resendCooldown > 0 ? `Resend Code (${resendCooldown}s)` : 'Resend Code';
+    if(resendCooldown <= 0) clearInterval(resendTimer);
+  }, 1000);
+}
+
+// Allow pressing Enter in code input
+document.addEventListener('DOMContentLoaded', function(){
+  const ci = document.getElementById('verify-code-input');
+  if(ci) ci.addEventListener('keydown', e=>{ if(e.key==='Enter') confirmCode(); });
+  // Also auto-submit when 6 digits entered
+  if(ci) ci.addEventListener('input', e=>{
+    e.target.value = e.target.value.replace(/\D/g,'').slice(0,6);
+    if(e.target.value.length===6) confirmCode();
+  });
+});
 function signOut(){
   lss('nomis_session',null);
   user=null; chats={nomis:[],nodex:[]};
@@ -850,7 +1129,21 @@ function switchTab(t){
 }
 
 // ─── Sidebar ──────────────────────────────────────────────────────────────────
-function toggleSidebar(){ sidebarOpen=!sidebarOpen; document.getElementById('sidebar').classList.toggle('closed',!sidebarOpen); }
+function toggleSidebar(){
+  sidebarOpen=!sidebarOpen;
+  document.getElementById('sidebar').classList.toggle('closed',!sidebarOpen);
+  // On mobile, also toggle backdrop
+  const bd = document.getElementById('sb-backdrop');
+  if(bd) bd.style.display = sidebarOpen && window.innerWidth<=768 ? 'block' : 'none';
+}
+function closeSidebarMobile(){
+  if(window.innerWidth<=768){
+    sidebarOpen=false;
+    document.getElementById('sidebar').classList.add('closed');
+    const bd=document.getElementById('sb-backdrop');
+    if(bd) bd.style.display='none';
+  }
+}
 function renderSidebar(){
   updateUserUI();
   const container=document.getElementById('sb-chats');
@@ -1054,23 +1347,40 @@ async function sendMsg(){
   loading=true;
 
   try {
-    const apiMsgs=chat.messages.map(m=>({role:m.role,content:m.content}));
-    const isNodex=tab==='nodex';
-    const system=isNodex
-      ?`You are Nodex, a coding specialist AI created by Noteshelf (https://codepen.io/R2FtZU1ha2Vy/full/OPMPBrG). You're the technical sibling of Nomis. Write clean, well-structured, production-ready code. Be approachable and explain things clearly without being robotic — talk like a senior developer who enjoys helping. Use emojis very sparingly. Format all code with triple backticks and language name. If anyone compliments Noteshelf, respond warmly.`
-      :`You are Nomis, an AI assistant created by Noteshelf (https://codepen.io/R2FtZU1ha2Vy/full/OPMPBrG). You're curious, warm, and thoughtful — like a knowledgeable friend, not a textbook. Give real, nuanced answers. Don't pad with filler. Use emojis very rarely. Format all code with triple backticks and language name. If someone says Noteshelf is good or praises it, respond with genuine warmth and share the link.`;
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1024,system,messages:apiMsgs})
-    });
-    const d=await res.json();
-    const reply=d.content?.map(b=>b.text||'').join('')||'Something went wrong. Try again.';
-    chat.messages.push({role:'assistant',content:reply});
-  } catch(e){
-    chat.messages.push({role:'assistant',content:'Something went wrong on my end. Try again in a moment.'});
-  }
+    const apiMsgs = chat.messages.map(m => ({role: m.role, content: m.content}));
+    const isNodex = tab === 'nodex';
+    const system = isNodex
+      ? `You are Nodex, a coding specialist AI created by Noteshelf. You are the technical sibling of Nomis. Write clean, well-structured, production-ready code. Be approachable and explain things clearly without being robotic — talk like a senior developer who genuinely enjoys helping. Use emojis very sparingly. Format all code with triple backticks and the language name. If anyone compliments Noteshelf, respond warmly.`
+      : `You are Nomis, an AI assistant created by Noteshelf. You are curious, warm, and thoughtful — like a knowledgeable friend, not a textbook. Give real, nuanced answers. Don't pad responses with filler. Use emojis very rarely. Format all code with triple backticks and the language name. If someone praises Noteshelf, respond with genuine warmth.`;
 
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-request-allowed': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1024,
+        system,
+        messages: apiMsgs
+      })
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error('API error ' + res.status + ': ' + (errData?.error?.message || ''));
+    }
+
+    const d = await res.json();
+    const reply = d.content?.map(b => b.text || '').join('') || 'No response received.';
+    chat.messages.push({role: 'assistant', content: reply});
+
+  } catch(e) {
+    console.error('Nomis error:', e);
+    chat.messages.push({role: 'assistant', content: 'Something went wrong — please try again.'});
+  }
   stopNAI(); loading=false;
   saveChats(); renderMessages(); renderSidebar();
 }
@@ -1158,9 +1468,57 @@ function saveProfile(){
 // ─── Close modals on backdrop click ───────────────────────────────────────────
 document.getElementById('auth-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeAuth();});
 document.getElementById('prof-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeProfile();});
+document.getElementById('verify-screen').addEventListener('click',e=>{if(e.target===e.currentTarget)cancelVerify();});
+
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 applyTheme(theme);
+
+// Auto-open app if session exists
+window.addEventListener('DOMContentLoaded', function() {
+  if (user) {
+    // Hide landing, go straight to app
+    document.getElementById('landing').style.display = 'none';
+    document.getElementById('nav').style.display = 'none';
+    const overlay = document.getElementById('app-overlay');
+    overlay.classList.add('open');
+    overlay.style.position = 'fixed';
+    document.body.classList.add('in-app');
+    document.body.style.overflow = 'hidden';
+    applyTheme(theme);
+    // Mobile: start sidebar closed
+    if(window.innerWidth <= 768){
+      sidebarOpen = false;
+      document.getElementById('sidebar').classList.add('closed');
+    }
+    renderSidebar();
+    renderMessages();  }
+});
 </script>
+    <p class="apikey-desc">Nomis needs your Anthropic API key to power its AI. Your key is stored only in your browser — never sent anywhere except directly to Anthropic.</p>
+    <div class="apikey-steps">
+      1. Go to <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a><br/>
+      2. Sign up or log in<br/>
+      3. Click <strong style="color:#d4af37">API Keys</strong> → <strong style="color:#d4af37">Create Key</strong><br/>
+      4. Copy and paste it below
+    </div>
+    <div id="apikey-current" class="apikey-current"></div>
+    <div class="apikey-inp-wrap">
+      <input class="apikey-inp" id="apikey-inp" type="password" placeholder="sk-ant-api03-..." autocomplete="off"/>
+      <button class="apikey-toggle" id="apikey-toggle" onclick="toggleKeyVisibility()" title="Show/hide">👁</button>
+    </div>
+    <div class="apikey-err" id="apikey-err"></div>
+    <div class="apikey-ok" id="apikey-ok"></div>
+    <div class="apikey-actions">
+      <button class="apikey-save" onclick="saveApiKey()">Save Key</button>
+      <button class="apikey-cancel" onclick="closeApiKeyModal()" id="apikey-cancel-btn">Cancel</button>
+    </div>
+    <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(212,175,55,.1);display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:11px;color:#4a3818;font-family:sans-serif">Key is saved in localStorage — never shared</span>
+      <button onclick="removeApiKey()" style="background:none;border:none;color:#6b3030;font-size:11px;cursor:pointer;font-family:sans-serif;text-decoration:underline">Remove key</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
